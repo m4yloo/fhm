@@ -10,9 +10,7 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
-
-    const handler = (e: KeyboardEvent) => {
+        const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.altKey && e.shiftKey && e.key.toLowerCase() === "d") {
         e.preventDefault();
         devBypassSignIn();

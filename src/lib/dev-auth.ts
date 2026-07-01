@@ -19,5 +19,5 @@ export const DEV_PROFILE: Profile = {
 };
 
 export function isDevBypassActive(): boolean {
-  return import.meta.env.DEV && sessionStorage.getItem(DEV_BYPASS_KEY) === "1";
+  return sessionStorage.getItem(DEV_BYPASS_KEY) === "1";
 }
