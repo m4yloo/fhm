@@ -10,7 +10,6 @@ dist/
 .env.*.local
 
 # the seeded games data file is large and regenerated via scripts/fetch-games.js
-src/data/games.ts
 
 # editor / OS
 .vscode/
