@@ -13,7 +13,7 @@ export default function AuthPage() {
     if (!import.meta.env.DEV) return;
 
     const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "k") {
+      if (e.ctrlKey && e.altKey && e.shiftKey && e.key.toLowerCase() === "d") {
         e.preventDefault();
         devBypassSignIn();
         setLocation("/kniznica");
