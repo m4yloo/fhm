@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MOCK_GAMES } from "@/data/games";
+import { useGames } from "@/hooks/useGames";
 import {
   Search,
   X,
@@ -39,39 +39,19 @@ export const GENRE_LABELS: Record<string, string> = {
   Indie: "Indie",
 };
 
-// Pre-compute lowercase title/genre index for fast search (built once).
-const SEARCH_INDEX = new Map<
-  string,
-  { id: number; title: string; genre: string; image: string; year: number; rating: string }[]
->();
-(() => {
-  for (const g of MOCK_GAMES) {
-    const letter = g.title[0]?.toLowerCase() || "#";
-    const bucket = SEARCH_INDEX.get(letter) || [];
-    bucket.push({
-      id: g.id,
-      title: g.title,
-      genre: g.genre,
-      image: g.image,
-      year: g.year,
-      rating: g.rating,
-    });
-    SEARCH_INDEX.set(letter, bucket);
-  }
-})();
+
+// Safe accessors — guard against null/undefined fields from Supabase.
+const safeTags = (tags: any): string[] => Array.isArray(tags) ? tags : [];
+const safeStr = (v: any): string => (typeof v === "string" ? v : "");
+const safeNum = (v: any): number => (typeof v === "number" ? v : 0);
+const safeRating = (v: any): string => {
+  const s = typeof v === "string" ? v : "";
+  const num = parseInt(s, 10);
+  return isNaN(num) ? "—" : `${num}%`;
+};
 
 // A game has a "real" rating if it's not the default 90% placeholder.
 const isRealRating = (rating: string) => rating !== "90%";
-
-// Derive available decades from the data (static — computed once at module load).
-const ALL_DECADES: number[] = (() => {
-  const years = MOCK_GAMES.map((g) => g.year).filter(Boolean);
-  const min = Math.min(...years);
-  const max = Math.max(...years);
-  const decades: number[] = [];
-  for (let d = Math.floor(min / 10) * 10; d <= max; d += 10) decades.push(d);
-  return decades;
-})();
 
 const DECADE_LABELS: Record<number, string> = {
   1980: "80s",
@@ -82,7 +62,7 @@ const DECADE_LABELS: Record<number, string> = {
 };
 
 // ── Shared carousel card component ──
-function CarouselCard({ game, onClick }: { game: (typeof MOCK_GAMES)[number]; onClick: () => void }) {
+function CarouselCard({ game, onClick }: { game: any; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -98,10 +78,10 @@ function CarouselCard({ game, onClick }: { game: (typeof MOCK_GAMES)[number]; on
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
       <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded">
         <Star className="w-2.5 h-2.5 text-yellow-400 fill-current" />
-        <span className="text-[9px] font-mono text-yellow-300">{game.rating.split(" ")[0]}</span>
+        <span className="text-[9px] font-mono text-yellow-300">{safeRating(game.rating)}</span>
       </div>
       <div className="absolute bottom-0 left-0 right-0 p-2.5">
-        <p className="text-xs font-bold text-white truncate drop-shadow">{game.title}</p>
+        <p className="text-xs font-bold text-white truncate drop-shadow">{safeStr(game.title)}</p>
         <p className="text-[10px] text-white/60 font-mono truncate">{GENRE_LABELS[game.genre] || game.genre}</p>
       </div>
     </button>
@@ -115,7 +95,7 @@ function GameRail({
   onPickGame,
 }: {
   title: string;
-  games: (typeof MOCK_GAMES)[number][];
+  games: any[];
   onPickGame: (id: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -165,6 +145,7 @@ function GameRail({
 }
 
 export default function Library() {
+  const { data: games = [], isLoading, error } = useGames();
   const [selectedGenre, setSelectedGenre] = useState("Všetky");
   const [selectedDecade, setSelectedDecade] = useState("Všetky");
   const [sortBy, setSortBy] = useState<"rating" | "year" | "name" | "newest">("rating");
@@ -190,66 +171,79 @@ export default function Library() {
     }
   }, [search]);
 
+  // ── All hooks are declared here, before any conditional returns ──
+
   const genres = useMemo(() => {
-    const present = Array.from(new Set(MOCK_GAMES.map((g) => g.genre)));
-    const labeled = present.map((g) => GENRE_LABELS[g] || g);
+    const present = Array.from(new Set(games.map((g: any) => safeStr(g.genre))));
+    const labeled = present.map((g: string) => GENRE_LABELS[g] || g);
     const unique = Array.from(new Set(labeled));
     return ["Všetky", ...unique];
-  }, []);
+  }, [games]);
 
   const labelToRawGenres = (label: string): string[] =>
     Object.entries(GENRE_LABELS)
       .filter(([, lbl]) => lbl === label)
       .map(([raw]) => raw);
 
+  // Derive available decades from the data
+  const ALL_DECADES = useMemo(() => {
+    const years = games.map((g: any) => safeNum(g.year)).filter(Boolean);
+    if (years.length === 0) return [];
+    const min = Math.min(...years);
+    const max = Math.max(...years);
+    const decades: number[] = [];
+    for (let d = Math.floor(min / 10) * 10; d <= max; d += 10) decades.push(d);
+    return decades;
+  }, [games]);
+
   // Step 1: Filter by genre + decade + broad search
   const filtered = useMemo(() => {
-    let pool = MOCK_GAMES;
+    let pool = games;
 
     // Genre filter
     if (selectedGenre !== "Všetky") {
       const rawMatches = labelToRawGenres(selectedGenre);
-      pool = pool.filter((g) => rawMatches.includes(g.genre));
+      pool = pool.filter((g: any) => rawMatches.includes(safeStr(g.genre)));
     }
 
     // Decade filter
     if (selectedDecade !== "Všetky") {
       const decade = Number(selectedDecade);
-      pool = pool.filter((g) => g.year >= decade && g.year < decade + 10);
+      pool = pool.filter((g: any) => { const y = safeNum(g.year); return y >= decade && y < decade + 10; });
     }
 
     // Broad search filter (partial match on Enter)
     if (broadSearchTerm) {
       const term = broadSearchTerm.toLowerCase();
-      pool = pool.filter((g) =>
-        g.title.toLowerCase().includes(term) ||
-        g.genre.toLowerCase().includes(term) ||
+      pool = pool.filter((g: any) =>
+        safeStr(g.title).toLowerCase().includes(term) ||
+        safeStr(g.genre).toLowerCase().includes(term) ||
         (GENRE_LABELS[g.genre] || g.genre).toLowerCase().includes(term)
       );
     }
 
     return pool;
-  }, [selectedGenre, selectedDecade, broadSearchTerm]);
+  }, [selectedGenre, selectedDecade, broadSearchTerm, games]);
 
   // Step 2: Sort the filtered set
   const sorted = useMemo(() => {
     const arr = [...filtered];
     switch (sortBy) {
       case "rating":
-        arr.sort((a, b) => {
-          const ra = parseInt(a.rating, 10) || 0;
-          const rb = parseInt(b.rating, 10) || 0;
+        arr.sort((a: any, b: any) => {
+          const ra = parseInt(safeStr(a.rating), 10) || 0;
+          const rb = parseInt(safeStr(b.rating), 10) || 0;
           return rb - ra;
         });
         break;
       case "year":
-        arr.sort((a, b) => (a.year || 0) - (b.year || 0));
+        arr.sort((a: any, b: any) => safeNum(a.year) - safeNum(b.year));
         break;
       case "name":
-        arr.sort((a, b) => a.title.localeCompare(b.title));
+        arr.sort((a: any, b: any) => safeStr(a.title).localeCompare(safeStr(b.title)));
         break;
       case "newest":
-        arr.sort((a, b) => (b.year || 0) - (a.year || 0));
+        arr.sort((a: any, b: any) => safeNum(b.year) - safeNum(a.year));
         break;
     }
     return arr;
@@ -264,7 +258,7 @@ export default function Library() {
   // Featured banner: a random game from the current filter, picked once per
   // genre selection. It is intentionally excluded from being the first grid
   // card so the spotlight is always something different from card #1.
-  const [featured, setFeatured] = useState<typeof MOCK_GAMES[number] | null>(null);
+  const [featured, setFeatured] = useState<any>(null);
   useEffect(() => {
     const pool = filtered.length > 1 ? filtered.slice(1) : filtered;
     if (pool.length === 0) {
@@ -273,41 +267,25 @@ export default function Library() {
     }
     setFeatured(pool[Math.floor(Math.random() * pool.length)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedGenre]);
+  }, [selectedGenre, filtered]);
 
-  // Search dropdown matches: uses pre-built index + debounced input so
-  // keystrokes stay snappy even with 4k+ games.
+  // Search dropdown matches: uses games array + debounced input
   const searchMatches = useMemo(() => {
     const s = debouncedSearch.trim().toLowerCase();
     if (!s) return [];
-    const results: typeof MOCK_GAMES[number][] = [];
-    const firstLetter = s[0] || "#";
-    const bucket = SEARCH_INDEX.get(firstLetter) || [];
-    for (const g of bucket) {
+    const results: any[] = [];
+    for (const g of games) {
       if (
-        g.title.toLowerCase().includes(s) ||
-        g.genre.toLowerCase().includes(s) ||
-        (GENRE_LABELS[g.genre] || g.genre).toLowerCase().includes(s)
+        safeStr(g.title).toLowerCase().includes(s) ||
+        safeStr(g.genre).toLowerCase().includes(s) ||
+        (GENRE_LABELS[safeStr(g.genre)] || g.genre).toLowerCase().includes(s)
       ) {
-        results.push(g as typeof MOCK_GAMES[number]);
+        results.push(g);
         if (results.length >= 8) break;
       }
     }
-    if (results.length < 8) {
-      for (const g of MOCK_GAMES) {
-        if (results.some((r) => r.id === g.id)) continue;
-        if (
-          g.title.toLowerCase().includes(s) ||
-          g.genre.toLowerCase().includes(s) ||
-          (GENRE_LABELS[g.genre] || g.genre).toLowerCase().includes(s)
-        ) {
-          results.push(g);
-          if (results.length >= 8) break;
-        }
-      }
-    }
     return results.slice(0, 8);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, games]);
 
   // Close the dropdown when clicking outside it.
   useEffect(() => {
@@ -333,10 +311,11 @@ export default function Library() {
 
   // ── New & Trending: recent games (2024–2026), sorted by year desc ──
   const newTrending = useMemo(() => {
-    return MOCK_GAMES.filter((g) => g.year >= 2024)
-      .sort((a, b) => (b.year || 0) - (a.year || 0))
+    return games
+      .filter((g: any) => safeNum(g.year) >= 2024)
+      .sort((a: any, b: any) => safeNum(b.year) - safeNum(a.year))
       .slice(0, 20);
-  }, []);
+  }, [games]);
 
   return (
     <div className="flex flex-col gap-10">
@@ -359,25 +338,25 @@ export default function Library() {
 
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              {featured.tags.slice(0, 3).map((tag) => (
+              {safeTags(featured.tags).slice(0, 3).map((tag: string) => (
                 <span key={tag} className="text-[10px] font-mono uppercase tracking-wider text-white/60 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded">
                   {tag}
                 </span>
               ))}
             </div>
             <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-2">
-              {featured.title}
+              {safeStr(featured.title)}
             </h2>
-            <p className="text-sm text-white/50 max-w-lg mb-4 hidden sm:block">{featured.description}</p>
+            <p className="text-sm text-white/50 max-w-lg mb-4 hidden sm:block">{safeStr(featured.description)}</p>
             <div className="flex items-center gap-3 text-xs text-white/40 font-mono">
               <div className="flex items-center gap-1">
                 <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                <span className="text-yellow-300">{featured.rating.split(" ")[0]}</span>
+                <span className="text-yellow-300">{safeRating(featured.rating)}</span>
               </div>
               <span>·</span>
-              <span>{featured.developer}</span>
+              <span>{safeStr(featured.developer)}</span>
               <span>·</span>
-              <span>{featured.year}</span>
+              <span>{safeNum(featured.year)}</span>
             </div>
           </div>
         </div>
@@ -467,13 +446,13 @@ export default function Library() {
                         className="w-8 h-8 rounded object-cover shrink-0"
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="text-xs font-semibold text-foreground truncate">{g.title}</div>
+                        <div className="text-xs font-semibold text-foreground truncate">{safeStr(g.title)}</div>
                         <div className="text-[10px] font-mono text-muted-foreground truncate">
-                          {GENRE_LABELS[g.genre] || g.genre} · {g.year}
+                          {GENRE_LABELS[safeStr(g.genre)] || g.genre} · {safeNum(g.year)}
                         </div>
                       </div>
                       <span className="text-[10px] font-mono text-yellow-300 shrink-0">
-                        {g.rating.split(" ")[0]}
+                        {safeRating(g.rating)}
                       </span>
                     </button>
                   ))
@@ -537,11 +516,11 @@ export default function Library() {
               )}
               <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded">
                 <Star className="w-2.5 h-2.5 text-yellow-400 fill-current" />
-                <span className="text-[9px] font-mono text-yellow-300">{game.rating.split(" ")[0]}</span>
+                <span className="text-[9px] font-mono text-yellow-300">{safeRating(game.rating)}</span>
               </div>
             </div>
-            <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">{game.title}</p>
-            <p className="text-[11px] text-muted-foreground font-mono truncate">{GENRE_LABELS[game.genre] || game.genre} · {game.year}</p>
+            <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">{safeStr(game.title)}</p>
+            <p className="text-[11px] text-muted-foreground font-mono truncate">{GENRE_LABELS[safeStr(game.genre)] || game.genre} · {safeNum(game.year)}</p>
           </div>
         ))}
       </div>

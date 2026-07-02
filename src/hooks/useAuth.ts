@@ -6,12 +6,17 @@ import {
   DEV_PROFILE,
   DEV_USER,
   isDevBypassActive,
+  type DevProfile,
 } from "@/lib/dev-auth";
 
 export interface Profile {
   id: string;
   username: string;
   created_at: string;
+  is_dev?: boolean;
+  badge?: string;
+  unlimited_access?: boolean;
+  admin_role?: boolean;
 }
 
 interface AuthState {
@@ -103,6 +108,14 @@ export function useAuth() {
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  }, []);
+
+  const signInWithOAuth = useCallback(async (provider: "discord" | "google") => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin + "/kniznica" },
+    });
     if (error) throw error;
   }, []);
 

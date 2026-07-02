@@ -19,3 +19,9 @@ Thumbs.db
 *.log
 
 ummm/
+
+# local secrets — Twitch/IGDB API credentials for the search script
+awdba/
+secrets/
+*.secret
+*.secret.txt

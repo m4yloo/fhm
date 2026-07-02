@@ -38,6 +38,12 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // The search script writes cache/checkpoint files into scripts/ on every
+    // batch — those aren't part of the app graph, so don't let them trigger
+    // full page reloads during a run.
+    watch: {
+      ignored: ["**/scripts/**"],
+    },
   },
   preview: {
     port,

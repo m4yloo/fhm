@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useAuthContext } from "@/lib/auth-provider";
+import { isDevBypassActive } from "@/lib/dev-auth";
 import {
   Key,
   ShieldCheck,
@@ -12,6 +14,8 @@ import {
   Database,
   Link2,
   User,
+  Crown,
+  Zap,
 } from "lucide-react";
 
 const ZISKANE_HRY = [
@@ -53,6 +57,8 @@ const LINKED_ACCOUNTS = [
 
 export default function Account() {
   const [, setLocation] = useLocation();
+  const { profile } = useAuthContext();
+  const isDev = isDevBypassActive();
   const [revealKeyId, setRevealKeyId] = useState<number | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<number | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
@@ -76,6 +82,43 @@ export default function Account() {
   return (
     <div className="space-y-10">
 
+      {/* ── Dev Account Banner ── */}
+      {isDev && (
+        <section className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-card p-6 md:p-8">
+          <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-[80px] translate-x-1/3 -translate-y-1/3" />
+          <div className="relative z-10 flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <Crown className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-xl font-extrabold text-amber-400">Developer Mode</h2>
+                <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 rounded text-[10px] font-mono text-amber-300 uppercase tracking-wider">
+                  Active
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Enhanced account with unlimited access and administrative privileges.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2 text-xs font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
+                  <Zap className="w-3.5 h-3.5" />
+                  Unlimited Access
+                </div>
+                <div className="flex items-center gap-2 text-xs font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Admin Role
+                </div>
+                <div className="flex items-center gap-2 text-xs font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
+                  <Database className="w-3.5 h-3.5" />
+                  Full DB Access
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── Active pass hero ── */}
       <section className="relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/8 via-card to-card p-8 md:p-10">
         {/* Background decoration */}
@@ -91,10 +134,13 @@ export default function Account() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-                Limitovaný pas
+                {isDev ? "Developer Unlimited" : "Limitovaný pas"}
               </h2>
               <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                Získaj až 12 plných verzií hier. Hry v knižnici ti zostanú navždy.
+                {isDev 
+                  ? "Neobmedzený prístup ku všetkým hrám v knižnici bez obmedzení."
+                  : "Získaj až 12 plných verzií hier. Hry v knižnici ti zostanú navždy."
+                }
               </p>
             </div>
 
@@ -102,15 +148,15 @@ export default function Account() {
               <div>
                 <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1 font-mono">Zostatok hier</div>
                 <div className="text-3xl font-extrabold font-mono text-primary" data-testid="text-redemptions-remaining">
-                  8{" "}
-                  <span className="text-muted-foreground text-xl font-normal">/ 12</span>
+                  {isDev ? "∞" : "8"}{" "}
+                  <span className="text-muted-foreground text-xl font-normal">{isDev ? "" : " / 12"}</span>
                 </div>
               </div>
               <div>
                 <div className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1 font-mono">Platnosť pasu</div>
                 <div className="text-3xl font-extrabold font-mono text-foreground" data-testid="text-days-left">
-                  14{" "}
-                  <span className="text-muted-foreground text-xl font-normal">dní</span>
+                  {isDev ? "∞" : "14"}{" "}
+                  <span className="text-muted-foreground text-xl font-normal">{isDev ? "" : " dní"}</span>
                 </div>
               </div>
             </div>

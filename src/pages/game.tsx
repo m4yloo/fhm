@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { MOCK_GAMES } from "@/data/games";
+import { useGame } from "@/hooks/useGame";
 import {
   ArrowLeft,
   Layers,
@@ -18,22 +18,25 @@ import {
   Tag,
 } from "lucide-react";
 
-// O(1) lookup by game id instead of scanning the full 4k array every render.
-const GAME_BY_ID = new Map<number, (typeof MOCK_GAMES)[number]>();
-for (const g of MOCK_GAMES) GAME_BY_ID.set(g.id, g);
-
 export default function GameDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-
-  const game = GAME_BY_ID.get(Number(id));
+  const { data: game, isLoading, error } = useGame(Number(id));
 
   // Key claiming state
   const [claimState, setClaimState] = useState<"idle" | "verifying" | "success">("idle");
   const [generatedKey, setGeneratedKey] = useState("");
   const [isCopied, setIsCopied] = useState(false);
 
-  if (!game) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !game) {
     return (
       <div className="py-24 text-center space-y-4">
         <p className="font-mono text-muted-foreground text-sm">Hra sa nenašla v knižnici.</p>
@@ -242,7 +245,7 @@ export default function GameDetail() {
             <TabsContent value="overview" className="mt-8 space-y-8 animate-in fade-in duration-300">
               {/* Long description */}
               <div className="space-y-6">
-                {game.longDescription.split("\n\n").map((para, i) => (
+                {(game.long_description || "").split("\n\n").map((para: string, i: number) => (
                   <p key={i} className="text-[#c4c4c9] leading-relaxed text-base">
                     {para}
                   </p>
@@ -251,7 +254,7 @@ export default function GameDetail() {
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2.5 pt-4">
-                {game.tags.map((tag, idx) => (
+                {(game.tags || []).map((tag: string, idx: number) => (
                   <span
                     key={idx}
                     className="px-3 py-1.5 bg-gradient-to-br from-card to-card/50 border border-border/60 rounded-lg text-[11px] font-mono text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all"
@@ -283,7 +286,7 @@ export default function GameDetail() {
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 pt-2">
-                {game.tags.map((tag, idx) => (
+                {(game.tags || []).map((tag: string, idx: number) => (
                   <span
                     key={idx}
                     className="px-2.5 py-1 bg-card border border-border/80 rounded-md text-[10px] font-mono text-muted-foreground"
@@ -294,11 +297,11 @@ export default function GameDetail() {
               </div>
 
               {/* Features (only if they look real) */}
-              {game.features.length > 0 && (
+              {(game.features || []).length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Funkcie</h4>
                   <ul className="space-y-1.5 text-sm text-[#c4c4c9]">
-                    {game.features.map((f, i) => (
+                    {game.features.map((f: string, i: number) => (
                       <li key={i} className="flex items-start gap-2">
                         <span className="text-primary mt-0.5">•</span>
                         {f}
@@ -323,19 +326,19 @@ export default function GameDetail() {
                       Minimálne požiadavky
                     </div>
                     <div>
-                      <span className="text-muted-foreground">OS:</span> {game.sysRequirementsMin.os}
+                      <span className="text-muted-foreground">OS:</span> {(game.sys_requirements_min || {}).os || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">CPU:</span> {game.sysRequirementsMin.cpu}
+                      <span className="text-muted-foreground">CPU:</span> {(game.sys_requirements_min || {}).cpu || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">RAM:</span> {game.sysRequirementsMin.ram}
+                      <span className="text-muted-foreground">RAM:</span> {(game.sys_requirements_min || {}).ram || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">GPU:</span> {game.sysRequirementsMin.gpu}
+                      <span className="text-muted-foreground">GPU:</span> {(game.sys_requirements_min || {}).gpu || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Disk:</span> {game.sysRequirementsMin.storage}
+                      <span className="text-muted-foreground">Disk:</span> {(game.sys_requirements_min || {}).storage || '-'}
                     </div>
                   </div>
 
@@ -345,19 +348,19 @@ export default function GameDetail() {
                       Odporúčané požiadavky
                     </div>
                     <div>
-                      <span className="text-muted-foreground">OS:</span> {game.sysRequirementsRec.os}
+                      <span className="text-muted-foreground">OS:</span> {(game.sys_requirements_rec || {}).os || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">CPU:</span> {game.sysRequirementsRec.cpu}
+                      <span className="text-muted-foreground">CPU:</span> {(game.sys_requirements_rec || {}).cpu || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">RAM:</span> {game.sysRequirementsRec.ram}
+                      <span className="text-muted-foreground">RAM:</span> {(game.sys_requirements_rec || {}).ram || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">GPU:</span> {game.sysRequirementsRec.gpu}
+                      <span className="text-muted-foreground">GPU:</span> {(game.sys_requirements_rec || {}).gpu || '-'}
                     </div>
                     <div>
-                      <span className="text-muted-foreground">Disk:</span> {game.sysRequirementsRec.storage}
+                      <span className="text-muted-foreground">Disk:</span> {(game.sys_requirements_rec || {}).storage || '-'}
                     </div>
                   </div>
                 </div>
