@@ -6,9 +6,9 @@ const PLANS = [
   {
     id: "limited",
     name: "Limitovaný",
-    price: "14,99",
+    price: "10",
     period: null,
-    description: "Jednorazová platba, 12 hier navždy.",
+    description: "Jednorazová platba, 12 hier bez časového limitu.",
     icon: CreditCard,
     accent: "border-border/70 hover:border-primary/40",
     badge: null,
@@ -16,7 +16,8 @@ const PLANS = [
     testid: "button-select-metered",
     features: [
       { text: "12 hier celkovo", highlight: true },
-      { text: "Hry zostávajú navždy" },
+      { text: "Bez časového limitu" },
+      { text: "Hry možno kedykoľvek uplatniť" },
       { text: "Štandardný katalóg" },
       { text: "Podpora do 24h" },
     ],
@@ -24,19 +25,18 @@ const PLANS = [
   {
     id: "unlimited",
     name: "Neobmedzený",
-    price: "29,99",
-    period: "/ 30 dní",
-    description: "Plný prístup ku knižnici, prioritná podpora.",
+    price: "15",
+    period: "/ 4 mesiace",
+    description: "100 hier v priebehu 4 mesiacov, prioritná podpora.",
     icon: Infinity,
     accent: "border-primary/40 shadow-lg shadow-primary/10",
     badge: "Odporúčané",
     cta: "Požiadať o neobmedzený pas",
     testid: "button-select-unlimited",
     features: [
-      { text: "Neobmedzený počet hier", highlight: true },
+      { text: "100 hier celkovo", highlight: true },
+      { text: "Platnosť 4 mesiace" },
       { text: "Prioritná podpora do 1h" },
-      { text: "Skorý prístup (4h) k novým hrám" },
-      { text: "Elite badge v Discorde" },
     ],
   },
 ];
@@ -56,7 +56,7 @@ export default function Passes() {
             <p className="text-muted-foreground text-sm leading-relaxed">
               Tvoja žiadosť o{" "}
               <span className="font-semibold text-foreground">{cakajuci}</span>{" "}
-              pas je v poradí. Aktivujeme ho do 24 hodín cez Discord.
+              pas je v poradí. Aktivujeme ho do 24 hodín.
             </p>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-mono bg-emerald-500/8 border border-emerald-500/20 px-4 py-2 rounded-full">

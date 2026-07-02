@@ -1,26 +1,32 @@
 import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MOCK_GAMES } from "@/data/games";
-import { 
-  ArrowLeft, 
-  Layers, 
-  Calendar, 
-  HardDrive, 
-  Star, 
-  Terminal, 
-  ShieldCheck, 
-  CheckCircle, 
-  Copy, 
-  Sparkles, 
-  Cpu 
+import {
+  ArrowLeft,
+  Layers,
+  Calendar,
+  Star,
+  CheckCircle,
+  Copy,
+  Cpu,
+  User,
+  Building2,
+  Monitor,
+  HardDrive,
+  Tag,
 } from "lucide-react";
+
+// O(1) lookup by game id instead of scanning the full 4k array every render.
+const GAME_BY_ID = new Map<number, (typeof MOCK_GAMES)[number]>();
+for (const g of MOCK_GAMES) GAME_BY_ID.set(g.id, g);
 
 export default function GameDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
 
-  const game = MOCK_GAMES.find((g) => g.id === Number(id));
+  const game = GAME_BY_ID.get(Number(id));
 
   // Key claiming state
   const [claimState, setClaimState] = useState<"idle" | "verifying" | "success">("idle");
@@ -31,9 +37,9 @@ export default function GameDetail() {
     return (
       <div className="py-24 text-center space-y-4">
         <p className="font-mono text-muted-foreground text-sm">Hra sa nenašla v knižnici.</p>
-        <Button 
-          variant="outline" 
-          onClick={() => setLocation("/kniznica")} 
+        <Button
+          variant="outline"
+          onClick={() => setLocation("/kniznica")}
           className="border-border text-muted-foreground hover:text-foreground"
         >
           Späť do katalógu
@@ -45,13 +51,13 @@ export default function GameDetail() {
   // Simulate secure license lookup
   const handleClaimKey = () => {
     setClaimState("verifying");
-    
+
     setTimeout(() => {
-      // Generate simulated but authentic-looking key
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      const rWord = (len: number) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+      const rWord = (len: number) =>
+        Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
       const key = `${rWord(5)}-${rWord(5)}-${rWord(5)}`;
-      
+
       setGeneratedKey(key);
       setClaimState("success");
     }, 2000);
@@ -64,7 +70,7 @@ export default function GameDetail() {
   };
 
   return (
-    <div className="space-y-12 max-w-5xl">
+    <div className="space-y-8 max-w-6xl">
       {/* Back button */}
       <button
         onClick={() => setLocation("/kniznica")}
@@ -75,18 +81,19 @@ export default function GameDetail() {
       </button>
 
       {/* Hero Header Card */}
-      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-10 md:gap-16 items-start">
-        {/* Left Side: Game Cover & Details */}
-        <div className="flex flex-col gap-4 w-full">
-          <div className="relative aspect-[3/4] bg-[#0c0b11] border border-border/80 overflow-hidden rounded-xl shadow-2xl">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 lg:gap-12 items-start">
+        {/* ── Left Side: Game Cover & Actions ── */}
+        <div className="flex flex-col gap-5 w-full sticky top-6">
+          <div className="relative aspect-[3/4] bg-gradient-to-br from-[#0c0b11] to-[#1a1a24] border border-border/80 overflow-hidden rounded-2xl shadow-2xl group">
             <img
               src={game.image}
               alt={game.title}
-              className={`w-full h-full object-cover ${!game.available ? "opacity-45 grayscale" : ""}`}
+              className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!game.available ? "opacity-45 grayscale" : ""}`}
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             {!game.available && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-                <span className="font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground border border-border px-3 py-1.5 bg-card/60 rounded">
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                <span className="font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground border border-border px-4 py-2 bg-card/80 rounded-lg">
                   Nedostupné
                 </span>
               </div>
@@ -94,31 +101,31 @@ export default function GameDetail() {
           </div>
 
           {/* Quick Specifications table */}
-          <div className="border border-border/60 bg-[#08080c] rounded-xl p-4 space-y-3.5 text-xs font-mono">
-            <div className="flex justify-between items-center border-b border-border/40 pb-2">
+          <div className="border border-border/60 bg-gradient-to-br from-[#08080c] to-[#0f0f15] rounded-xl p-5 space-y-4 text-xs font-mono shadow-lg">
+            <div className="flex justify-between items-center border-b border-border/40 pb-3">
               <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Platforma</span>
               <span className="text-foreground font-semibold uppercase">{game.platform}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-border/40 pb-2">
+            <div className="flex justify-between items-center border-b border-border/40 pb-3">
               <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Žáner</span>
               <span className="text-foreground font-semibold text-right">{game.genre}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-border/40 pb-2">
+            <div className="flex justify-between items-center border-b border-border/40 pb-3">
               <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Rok Vydania</span>
               <span className="text-foreground font-semibold">{game.year}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-border/40 pb-2">
+            <div className="flex justify-between items-center border-b border-border/40 pb-3">
               <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Developer</span>
               <span className="text-foreground font-semibold truncate max-w-[140px] text-right">{game.developer}</span>
             </div>
-            <div className="flex justify-between items-center border-b border-border/40 pb-2">
+            <div className="flex justify-between items-center border-b border-border/40 pb-3">
               <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Veľkosť</span>
               <span className="text-foreground font-semibold">{game.size}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground uppercase tracking-wider text-[10px]">Stav kľúčov</span>
               <span className={game.available ? "text-primary font-semibold" : "text-muted-foreground"}>
-                {game.available ? "Na sklade (Dostupné)" : "Vypredané"}
+                {game.available ? "Na sklade" : "Vypredané"}
               </span>
             </div>
           </div>
@@ -131,7 +138,7 @@ export default function GameDetail() {
                 data-testid="button-ziskat-detail"
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-xs uppercase tracking-widest h-12 rounded-xl shadow-lg shadow-primary/10 transition-transform duration-200 hover:-translate-y-0.5"
               >
-                Získať Hru (Claim Key)
+                Získať Hru
               </Button>
             )
           ) : (
@@ -144,7 +151,6 @@ export default function GameDetail() {
             </Button>
           )}
 
-          {/* Key Claim Simulator UI */}
           {claimState === "verifying" && (
             <div className="bg-[#0f0e15] border border-primary/20 rounded-xl p-4 text-center space-y-3 font-mono text-[11px] animate-pulse text-muted-foreground">
               <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
@@ -160,8 +166,7 @@ export default function GameDetail() {
               <div className="flex items-center justify-center gap-1.5 text-emerald-500 font-mono text-xs font-bold uppercase">
                 <CheckCircle className="w-4 h-4 fill-current" /> Licencia Získaná!
               </div>
-              
-              {/* Boxed key */}
+
               <div className="bg-[#040406] border border-border/80 p-2.5 rounded-lg flex items-center justify-between font-mono text-xs select-all text-foreground">
                 <span className="font-semibold tracking-wider">{generatedKey}</span>
                 <button
@@ -186,94 +191,202 @@ export default function GameDetail() {
           )}
         </div>
 
-        {/* Right Side: Title, Details, and Live Playable Preview */}
+        {/* ── Right Side: Tabbbed content ── */}
         <div className="space-y-8">
-          <div>
-            {/* Tagline */}
-            <div className="flex items-center gap-2.5 text-primary text-xs font-mono uppercase tracking-widest mb-3">
-              <Layers className="w-3.5 h-3.5" />
+          {/* Title & tagline (always visible above tabs) */}
+          <div className="relative">
+            <div className="flex items-center gap-3 text-primary text-xs font-mono uppercase tracking-widest mb-4">
+              <Layers className="w-4 h-4" />
               <span>{game.genre}</span>
-              <span>·</span>
-              <Calendar className="w-3.5 h-3.5" />
+              <span className="text-border">·</span>
+              <Calendar className="w-4 h-4" />
               <span>{game.year}</span>
-              <span>·</span>
-              <Star className="w-3.5 h-3.5 fill-current" />
+              <span className="text-border">·</span>
+              <Star className="w-4 h-4 fill-current" />
               <span className="text-foreground font-semibold">{game.rating}</span>
             </div>
 
-            <h1 className="font-serif text-3xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
+            <h1 className="font-serif text-4xl md:text-6xl font-bold tracking-tight text-foreground mb-5 leading-tight">
               {game.title}
             </h1>
-            
-            <p className="text-muted-foreground text-base leading-relaxed">
+
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-3xl">
               {game.description}
             </p>
           </div>
 
-          {/* Description details */}
-          <div className="border-t border-border/40 pt-8 space-y-4">
-            {game.longDescription.split("\n\n").map((para, i) => (
-              <p key={i} className="text-[#c4c4c9] leading-relaxed text-sm">
-                {para}
-              </p>
-            ))}
-          </div>
-
-          {/* Game Tags list */}
-          <div className="flex flex-wrap gap-2 pt-2">
-            {game.tags.map((tag, idx) => (
-              <span
-                key={idx}
-                className="px-2.5 py-1 bg-card border border-border/80 rounded-md text-[10px] font-mono text-muted-foreground"
+          {/* ── Tabs ── */}
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="w-full justify-start bg-transparent border-b border-border/40 p-0 rounded-none gap-6">
+              <TabsTrigger
+                value="overview"
+                className="data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary text-muted-foreground hover:text-foreground text-xs font-mono px-0 py-3 rounded-none border-b-2 border-transparent transition-all"
               >
-                {tag}
-              </span>
-            ))}
-          </div>
+                Prehľad
+              </TabsTrigger>
+              <TabsTrigger
+                value="details"
+                className="data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary text-muted-foreground hover:text-foreground text-xs font-mono px-0 py-3 rounded-none border-b-2 border-transparent transition-all"
+              >
+                Podrobnosti
+              </TabsTrigger>
+              <TabsTrigger
+                value="system"
+                className="data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary text-muted-foreground hover:text-foreground text-xs font-mono px-0 py-3 rounded-none border-b-2 border-transparent transition-all"
+              >
+                Systém
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Features list */}
-          <div className="border-t border-border/40 pt-8">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-4">Hlavné Vlastnosti</h3>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {game.features.map((f, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
-                  <span className="text-primary text-xs mt-1 shrink-0">◆</span>
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Hardware Requirements */}
-          <div className="border-t border-border/40 pt-8 space-y-4">
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-              <Cpu className="w-4 h-4" /> Hardvérové Požiadavky
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-[11px] leading-relaxed">
-              {/* Minimum */}
-              <div className="bg-[#08080c] border border-border/50 p-4 rounded-xl space-y-2">
-                <div className="text-muted-foreground uppercase text-[10px] font-bold border-b border-border/30 pb-1 text-primary">Minimálne požiadavky</div>
-                <div><span className="text-muted-foreground">OS:</span> {game.sysRequirementsMin.os}</div>
-                <div><span className="text-muted-foreground">CPU:</span> {game.sysRequirementsMin.cpu}</div>
-                <div><span className="text-muted-foreground">RAM:</span> {game.sysRequirementsMin.ram}</div>
-                <div><span className="text-muted-foreground">GPU:</span> {game.sysRequirementsMin.gpu}</div>
-                <div><span className="text-muted-foreground">Disk:</span> {game.sysRequirementsMin.storage}</div>
+            {/* ── Tab: Prehľad ── */}
+            <TabsContent value="overview" className="mt-8 space-y-8 animate-in fade-in duration-300">
+              {/* Long description */}
+              <div className="space-y-6">
+                {game.longDescription.split("\n\n").map((para, i) => (
+                  <p key={i} className="text-[#c4c4c9] leading-relaxed text-base">
+                    {para}
+                  </p>
+                ))}
               </div>
 
-              {/* Recommended */}
-              <div className="bg-[#08080c] border border-primary/10 p-4 rounded-xl space-y-2">
-                <div className="text-muted-foreground uppercase text-[10px] font-bold border-b border-border/30 pb-1 text-[#e3e3e6]">Odporúčané požiadavky</div>
-                <div><span className="text-muted-foreground">OS:</span> {game.sysRequirementsRec.os}</div>
-                <div><span className="text-muted-foreground">CPU:</span> {game.sysRequirementsRec.cpu}</div>
-                <div><span className="text-muted-foreground">RAM:</span> {game.sysRequirementsRec.ram}</div>
-                <div><span className="text-muted-foreground">GPU:</span> {game.sysRequirementsRec.gpu}</div>
-                <div><span className="text-muted-foreground">Disk:</span> {game.sysRequirementsRec.storage}</div>
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2.5 pt-4">
+                {game.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1.5 bg-gradient-to-br from-card to-card/50 border border-border/60 rounded-lg text-[11px] font-mono text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
-            </div>
-          </div>
+            </TabsContent>
+
+            {/* ── Tab: Podrobnosti ── */}
+            <TabsContent value="details" className="mt-6 space-y-6">
+              {/* Info grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+                <InfoRow icon={<User className="w-3.5 h-3.5" />} label="Developer" value={game.developer} />
+                <InfoRow icon={<Building2 className="w-3.5 h-3.5" />} label="Publisher" value={game.publisher} />
+                <InfoRow icon={<Layers className="w-3.5 h-3.5" />} label="Žáner" value={game.genre} />
+                <InfoRow icon={<Monitor className="w-3.5 h-3.5" />} label="Platforma" value={game.platform} />
+                <InfoRow icon={<Calendar className="w-3.5 h-3.5" />} label="Rok vydania" value={String(game.year)} />
+                <InfoRow icon={<HardDrive className="w-3.5 h-3.5" />} label="Veľkosť" value={game.size} />
+                <InfoRow icon={<Star className="w-3.5 h-3.5" />} label="Hodnotenie" value={game.rating} />
+                <InfoRow
+                  icon={<Tag className="w-3.5 h-3.5" />}
+                  label="Stav"
+                  value={game.available ? "Dostupné" : "Vypredané"}
+                  valueClass={game.available ? "text-primary" : "text-muted-foreground"}
+                />
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                {game.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-1 bg-card border border-border/80 rounded-md text-[10px] font-mono text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Features (only if they look real) */}
+              {game.features.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Funkcie</h4>
+                  <ul className="space-y-1.5 text-sm text-[#c4c4c9]">
+                    {game.features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-primary mt-0.5">•</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* ── Tab: Systém ── */}
+            <TabsContent value="system" className="mt-6 space-y-6">
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 mb-4">
+                  <Cpu className="w-4 h-4" /> Hardvérové Požiadavky
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-[11px] leading-relaxed">
+                  {/* Minimum */}
+                  <div className="bg-[#08080c] border border-border/50 p-4 rounded-xl space-y-2">
+                    <div className="text-muted-foreground uppercase text-[10px] font-bold border-b border-border/30 pb-1 text-primary">
+                      Minimálne požiadavky
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">OS:</span> {game.sysRequirementsMin.os}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">CPU:</span> {game.sysRequirementsMin.cpu}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">RAM:</span> {game.sysRequirementsMin.ram}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">GPU:</span> {game.sysRequirementsMin.gpu}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Disk:</span> {game.sysRequirementsMin.storage}
+                    </div>
+                  </div>
+
+                  {/* Recommended */}
+                  <div className="bg-[#08080c] border border-primary/10 p-4 rounded-xl space-y-2">
+                    <div className="text-muted-foreground uppercase text-[10px] font-bold border-b border-border/30 pb-1 text-[#e3e3e6]">
+                      Odporúčané požiadavky
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">OS:</span> {game.sysRequirementsRec.os}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">CPU:</span> {game.sysRequirementsRec.cpu}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">RAM:</span> {game.sysRequirementsRec.ram}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">GPU:</span> {game.sysRequirementsRec.gpu}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Disk:</span> {game.sysRequirementsRec.storage}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Small info row helper ──
+function InfoRow({
+  icon,
+  label,
+  value,
+  valueClass,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 bg-card/50 border border-border/40 rounded-lg px-3 py-2.5">
+      <span className="text-muted-foreground shrink-0">{icon}</span>
+      <span className="text-muted-foreground uppercase tracking-wider text-[9px] shrink-0">{label}</span>
+      <span className={`ml-auto text-foreground font-semibold text-right truncate ${valueClass || ""}`}>{value}</span>
     </div>
   );
 }
