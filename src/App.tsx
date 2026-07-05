@@ -42,9 +42,9 @@ function Router() {
       {/* <Route path="/prihlasenie" component={AuthPage} /> */}
       {/* <Route path="/registracia" component={AuthPage} /> */}
 
-      {/* Protected — wrapped in Layout */}
-      <Route>
-        <ProtectedRoute>
+      {/* Protected — wrapped in Layout (AUTH DISABLED - All routes public) */}
+      {/* <Route>
+        <ProtectedRoute> */}
           <Layout>
             <Switch>
               <Route path="/" component={Library} />
@@ -57,8 +57,8 @@ function Router() {
               <Route component={NotFound} />
             </Switch>
           </Layout>
-        </ProtectedRoute>
-      </Route>
+        {/* </ProtectedRoute>
+      </Route> */}
     </Switch>
   );
 }
