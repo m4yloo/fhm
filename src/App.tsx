@@ -38,9 +38,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <Switch>
-      {/* Public — auth pages */}
-      <Route path="/prihlasenie" component={AuthPage} />
-      <Route path="/registracia" component={AuthPage} />
+      {/* Public — auth pages (DISABLED) */}
+      {/* <Route path="/prihlasenie" component={AuthPage} /> */}
+      {/* <Route path="/registracia" component={AuthPage} /> */}
 
       {/* Protected — wrapped in Layout */}
       <Route>
