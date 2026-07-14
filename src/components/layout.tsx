@@ -55,7 +55,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const passName = activePass?.name ?? "Pas";
   const gamesAllowed = activePass?.redemptions_total ?? 0;
   const gamesClaimed = activePass?.redemptions_used ?? userGames.length;
-  const percentage = gamesAllowed > 0 ? Math.min(Math.round((gamesClaimed / gamesAllowed) * 100), 100) : 0;
+  const percentage = gamesAllowed > 0
+    ? Math.min(Math.round((gamesClaimed / gamesAllowed) * 100), 100)
+    : 0;
 
   const currentPageTitle = NAV_ITEMS.find((item) => isActive(item.href))?.label ?? "FHP";
 
