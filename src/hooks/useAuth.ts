@@ -147,8 +147,21 @@ export function useAuth() {
   }, []);
 
   const signInWithOAuth = useCallback(async (provider: "discord" | "google") => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    const origin = window.location.origin;
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${origin}/auth/callback`,
+        skipBrowserRedirect: true,
+      },
+    });
     if (error) throw error;
+
+    const width = 600;
+    const height = 700;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    window.open(data.url, "oauth popup", `width=${width},height=${height},left=${left},top=${top}`);
   }, []);
 
   const signOut = useCallback(async () => {

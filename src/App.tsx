@@ -18,6 +18,7 @@ const Ledger = lazy(() => import("@/pages/ledger"));
 const Passes = lazy(() => import("@/pages/passes"));
 const FAQ = lazy(() => import("@/pages/faq"));
 const Admin = lazy(() => import("@/pages/admin"));
+const AuthCallback = lazy(() => import("@/pages/auth-callback"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Landing = lazy(() => import("@/pages/landing"));
 
@@ -69,6 +70,11 @@ function Router() {
               <Landing />
             </PageTransition>
           </Suspense>
+        </Route>
+
+        {/* ── OAuth callback (popup) ── */}
+        <Route path="/auth/callback">
+          <AuthCallback />
         </Route>
 
         {/* ── Layout-wrapped pages (catch-all, last) ── */}
