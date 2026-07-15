@@ -1,31 +1,44 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuthContext } from "@/lib/auth-provider";
 import { isDevBypassActive } from "@/lib/dev-auth";
 import { usePass } from "@/hooks/usePass";
 import { useUserGames } from "@/hooks/useUserGames";
+import { useRequestPass } from "@/hooks/usePassRequests";
 import { AccountSkeleton } from "@/components/skeletons";
 import {
   CheckCircle,
   Copy,
   Crown,
+  Edit3,
   Eye,
   EyeOff,
   ExternalLink,
   Gamepad2,
+  Save,
   ShieldCheck,
+  User,
+  X,
   Zap,
 } from "lucide-react";
 
 export default function Account() {
   const [, setLocation] = useLocation();
-  const { profile, user } = useAuthContext();
+  const { profile, user, updateProfile } = useAuthContext();
   const isDev = isDevBypassActive();
   const { data: activePass, isLoading: passLoading } = usePass();
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
   const [revealKeyId, setRevealKeyId] = useState<number | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<number | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState(false);
+  const renewPass = useRequestPass();
 
   const passName = activePass?.pass_type === "unlimited" ? "Neobmedzený pas" : "Limitovaný pas";
   const gamesAllowed = activePass?.games_allowed ?? 0;
@@ -39,6 +52,39 @@ export default function Account() {
     navigator.clipboard.writeText(keyText);
     setCopiedKeyId(id);
     setTimeout(() => setCopiedKeyId(null), 2000);
+  };
+
+  const startEditingProfile = () => {
+    setEditUsername(profile?.username ?? "");
+    setEditEmail(user?.email ?? "");
+    setIsEditingProfile(true);
+    setProfileError(null);
+    setProfileSuccess(false);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editUsername.trim()) {
+      setProfileError("Používateľské meno nemôže byť prázdne.");
+      return;
+    }
+
+    setProfileSaving(true);
+    setProfileError(null);
+    setProfileSuccess(false);
+
+    try {
+      await updateProfile({
+        username: editUsername.trim(),
+        email: editEmail.trim() !== user?.email ? editEmail.trim() : undefined,
+      });
+      setProfileSuccess(true);
+      setIsEditingProfile(false);
+      setTimeout(() => setProfileSuccess(false), 3000);
+    } catch (err: any) {
+      setProfileError(err?.message || "Nepodarilo sa uložiť zmeny.");
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   return (
@@ -117,7 +163,105 @@ export default function Account() {
               </div>
             </div>
           </div>
+
+          {activePass && daysLeft <= 3 && daysLeft > 0 && (
+            <div className="mt-6 pt-6 border-t border-border/50 flex items-center gap-4">
+              <p className="text-sm text-muted-foreground">Tvoj pas končí o {daysLeft} dní.</p>
+              <Button
+                onClick={() => renewPass.mutate(activePass.pass_type)}
+                disabled={renewPass.isPending}
+                className="bg-primary hover:bg-primary/90 text-white font-mono text-xs uppercase tracking-widest h-9 rounded-xl px-5"
+              >
+                {renewPass.isPending ? "Predlžujem..." : "Predĺžiť pas"}
+              </Button>
+            </div>
+          )}
         </div>
+      </section>
+
+      <section className="bg-card border border-border/60 rounded-2xl p-6 sm:p-8">
+        <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-5">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-primary" />
+            <h3 className="font-extrabold text-xl">Profil</h3>
+          </div>
+          {!isEditingProfile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={startEditingProfile}
+              className="h-8 text-xs font-mono text-muted-foreground hover:text-primary px-3 flex items-center gap-1.5"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              Upraviť
+            </Button>
+          )}
+        </div>
+
+        {profileSuccess && (
+          <div className="mb-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 text-sm text-emerald-400 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Zmeny boli uložené.
+          </div>
+        )}
+
+        {profileError && (
+          <div className="mb-4 bg-red-500/5 border border-red-500/20 rounded-xl p-3 text-sm text-red-400">
+            {profileError}
+          </div>
+        )}
+
+        {isEditingProfile ? (
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1.5 font-mono block">Používateľské meno</label>
+              <Input
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                className="h-10 bg-background border-border/60 text-sm font-mono"
+                placeholder="Tvoje meno"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1.5 font-mono block">E-mail</label>
+              <Input
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                className="h-10 bg-background border-border/60 text-sm font-mono"
+                placeholder="email@example.com"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1.5">Na zmenu e-mailu dostaneš potvrdzovací odkaz.</p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={handleSaveProfile}
+                disabled={profileSaving}
+                className="bg-primary hover:bg-primary/90 text-white font-mono text-xs uppercase tracking-widest h-9 rounded-xl px-5"
+              >
+                {profileSaving ? "Ukladám..." : "Uložiť"}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setIsEditingProfile(false)}
+                className="h-9 text-xs font-mono text-muted-foreground hover:text-foreground px-4"
+              >
+                Zrušiť
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-2 border-b border-border/30">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">Používateľské meno</span>
+              <span className="text-sm font-medium text-foreground">{profile?.username ?? "—"}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono">E-mail</span>
+              <span className="text-sm font-medium text-foreground">{user?.email ?? "—"}</span>
+            </div>
+          </div>
+        )}
       </section>
 
       <section>

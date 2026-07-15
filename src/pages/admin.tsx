@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useAuthContext } from "@/lib/auth-provider";
+import { AdminSkeleton } from "@/components/skeletons";
 import {
   Shield,
   Users,
@@ -154,11 +155,7 @@ export default function Admin() {
   });
 
   if (adminLoading) {
-    return (
-      <div className="flex items-center justify-center py-32">
-        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <AdminSkeleton />;
   }
 
   if (!isAdmin) {
@@ -180,7 +177,7 @@ export default function Admin() {
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono text-primary uppercase tracking-widest mb-2">
             <Shield className="w-3.5 h-3.5" />
-            Admin Panel
+            Administrácia
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight">Dashboard</h1>
         </div>

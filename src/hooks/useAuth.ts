@@ -168,6 +168,31 @@ export function useAuth() {
     window.open(data.url, "oauth popup", `width=${width},height=${height},left=${left},top=${top}`);
   }, []);
 
+  const updateProfile = useCallback(async (updates: { username?: string; email?: string }) => {
+    const currentUser = state.user;
+    setState((current) => ({ ...current, loading: true }));
+
+    if (updates.email && currentUser) {
+      const { error } = await supabase.auth.updateUser({ email: updates.email });
+      if (error) throw error;
+    }
+
+    if (updates.username && currentUser) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ username: updates.username })
+        .eq("id", currentUser.id);
+      if (error) throw error;
+    }
+
+    if (currentUser) {
+      const profile = await loadProfile(currentUser);
+      setState((current) => ({ ...current, profile, loading: false }));
+    } else {
+      setState((current) => ({ ...current, loading: false }));
+    }
+  }, [state.user, loadProfile]);
+
   const signOut = useCallback(async () => {
     if (devBypassRef.current) {
       clearDevBypass();
@@ -183,6 +208,7 @@ export function useAuth() {
     signIn,
     signInWithOAuth,
     signOut,
+    updateProfile,
     devBypassSignIn: applyDevBypass,
   };
 }
