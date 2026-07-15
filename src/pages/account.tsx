@@ -10,11 +10,10 @@ import {
   CheckCircle,
   Copy,
   Crown,
-  Database,
   Eye,
   EyeOff,
   ExternalLink,
-  Key,
+  Gamepad2,
   ShieldCheck,
   Zap,
 } from "lucide-react";
@@ -27,8 +26,6 @@ export default function Account() {
   const { data: userGames = [], isLoading: gamesLoading } = useUserGames();
   const [revealKeyId, setRevealKeyId] = useState<number | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<number | null>(null);
-  const [verificationCode, setVerificationCode] = useState("");
-  const [verificationResult, setVerificationResult] = useState<"idle" | "success" | "error">("idle");
 
   const passName = activePass?.pass_type === "unlimited" ? "Neobmedzený pas" : "Limitovaný pas";
   const gamesAllowed = activePass?.games_allowed ?? 0;
@@ -42,13 +39,6 @@ export default function Account() {
     navigator.clipboard.writeText(keyText);
     setCopiedKeyId(id);
     setTimeout(() => setCopiedKeyId(null), 2000);
-  };
-
-  const handleVerify = () => {
-    const value = verificationCode.trim();
-    if (!value) return;
-    const found = userGames.some((item) => item.license_key === value);
-    setVerificationResult(found ? "success" : "error");
   };
 
   return (
@@ -133,8 +123,8 @@ export default function Account() {
       <section>
         <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-5">
           <div className="flex items-center gap-2">
-            <Key className="w-4 h-4 text-primary" />
-            <h3 className="font-extrabold text-xl">Kľúče v trezore</h3>
+            <Gamepad2 className="w-4 h-4 text-primary" />
+            <h3 className="font-extrabold text-xl">Hry v trezore</h3>
           </div>
           <span className="text-[11px] font-mono text-muted-foreground bg-card border border-border/60 px-3 py-1 rounded-lg" data-testid="text-game-count">
             {gamesLoading ? "..." : userGames.length} hier
@@ -209,59 +199,6 @@ export default function Account() {
                 </div>
               );
             })}
-          </div>
-        )}
-      </section>
-
-      <section className="bg-card border border-border/60 rounded-2xl p-6 md:p-8">
-        <div className="flex items-center gap-2 mb-1">
-          <Database className="w-4 h-4 text-primary" />
-          <h3 className="font-bold text-base">Overovanie integrity kľúčov</h3>
-        </div>
-        <p className="text-sm text-muted-foreground mb-5 max-w-xl">
-          Overenie teraz porovnáva hodnotu s tvojimi reálnymi kľúčmi v user_games.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 max-w-xl">
-          <input
-            type="text"
-            placeholder="Vlož licenčný kľúč"
-            value={verificationCode}
-            onChange={(e) => {
-              setVerificationCode(e.target.value);
-              setVerificationResult("idle");
-            }}
-            className="flex-1 bg-background border border-border/70 focus:border-primary px-4 py-2.5 rounded-xl font-mono text-xs focus:outline-none text-foreground placeholder:text-muted-foreground/50 transition-colors"
-          />
-          <Button
-            onClick={handleVerify}
-            className="bg-primary hover:bg-primary/90 text-white font-mono text-xs uppercase tracking-wider px-5 rounded-xl shrink-0 shadow-lg shadow-primary/20"
-          >
-            Overiť
-          </Button>
-        </div>
-
-        {verificationResult === "success" && (
-          <div className="mt-4 bg-emerald-500/5 border border-emerald-500/25 rounded-xl p-4 max-w-xl flex gap-3 items-start animate-fade-in">
-            <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-            <div className="font-mono text-xs space-y-1">
-              <div className="text-emerald-400 font-bold">Kľúč patrí k tvojmu účtu</div>
-              <div className="text-muted-foreground text-[10px] leading-relaxed">
-                Záznam bol nájdený v Supabase user_games.
-              </div>
-            </div>
-          </div>
-        )}
-
-        {verificationResult === "error" && (
-          <div className="mt-4 bg-red-500/5 border border-red-500/25 rounded-xl p-4 max-w-xl flex gap-3 items-start animate-fade-in">
-            <div className="w-5 h-5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 flex items-center justify-center font-bold text-xs shrink-0">!</div>
-            <div className="font-mono text-xs space-y-1">
-              <div className="text-red-400 font-bold">Kľúč nenájdený</div>
-              <div className="text-muted-foreground text-[10px] leading-relaxed">
-                Tento kľúč nie je medzi tvojimi uplatnenými licenciami.
-              </div>
-            </div>
           </div>
         )}
       </section>

@@ -119,7 +119,7 @@ export default function GameDetail() {
               <span className="text-foreground font-semibold">{game.size}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground uppercase tracking-wider text-[11px]">Stav kľúčov</span>
+              <span className="text-muted-foreground uppercase tracking-wider text-[11px]">Stav</span>
               <span className={game.available ? "text-primary font-semibold" : "text-muted-foreground"}>
                 {game.available ? "Na sklade" : "Vypredané"}
               </span>
@@ -150,8 +150,8 @@ export default function GameDetail() {
             <div className="bg-[#0f0e15] border border-primary/20 rounded-xl p-3 text-center space-y-2 font-mono text-[10px] animate-pulse text-muted-foreground">
               <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
               <div>
-                <p className="text-primary font-semibold">OVEROVANIE LICENCIE...</p>
-                <p className="text-[8px]">Sťahujem kryptografický kľúč z FHP databázy</p>
+                <p className="text-primary font-semibold">PRIPRAVUJEM HRU...</p>
+                <p className="text-[8px]">Sťahujem dáta z FHP databázy</p>
               </div>
             </div>
           )}
