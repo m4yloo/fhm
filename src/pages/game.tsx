@@ -151,7 +151,6 @@ export default function GameDetail() {
               <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
               <div>
                 <p className="text-primary font-semibold">PRIPRAVUJEM HRU...</p>
-                <p className="text-[8px]">Sťahujem dáta z FHP databázy</p>
               </div>
             </div>
           )}
@@ -160,7 +159,7 @@ export default function GameDetail() {
             <div className="bg-red-950/20 border border-red-500/30 rounded-xl p-3 text-center space-y-1.5 animate-fade-in">
               <div className="text-red-400 font-mono text-[10px] font-bold uppercase">Licenciu sa nepodarilo získať</div>
               <div className="text-[9px] text-muted-foreground leading-normal font-mono">
-                {(claimGame.error as Error).message}
+                Skúste to znova alebo kontaktujte podporu.
               </div>
             </div>
           )}

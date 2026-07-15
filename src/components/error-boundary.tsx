@@ -31,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="space-y-2">
               <h2 className="text-lg font-bold text-foreground">Niečo sa pokazilo</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {this.state.error?.message || "Neočakávaná chyba pri vykresľovaní stránky."}
+                {this.state.error ? "Neočakávaná chyba pri vykresľovaní stránky." : "Neočakávaná chyba pri vykresľovaní stránky."}
               </p>
             </div>
             <button

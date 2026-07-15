@@ -92,7 +92,7 @@ export default function Account() {
               </h2>
               <p className="text-sm text-muted-foreground mt-2 max-w-sm">
                 {activePass
-                  ? "Tento stav je načítaný zo Supabase user_passes."
+                  ? "Aktívny pas a zostávajúce hry sa zobrazujú automaticky."
                   : "Požiadaj o členstvo v sekcii Členské pasy."}
               </p>
               <p className="text-[11px] text-muted-foreground font-mono mt-3">
@@ -133,7 +133,7 @@ export default function Account() {
 
         {userGames.length === 0 && !gamesLoading ? (
           <div className="bg-card border border-dashed border-border/60 rounded-2xl p-8 text-sm text-muted-foreground">
-            Zatiaľ nemáš žiadne uplatnené hry. Keď získaš licenciu, objaví sa tu zo Supabase user_games.
+            Zatiaľ nemáš žiadne uplatnené hry. Keď získaš licenciu, objaví sa tu.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

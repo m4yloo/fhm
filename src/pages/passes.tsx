@@ -49,12 +49,12 @@ export default function Passes() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-foreground">Žiadosť odoslaná</h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Tvoja žiadosť o <span className="font-semibold text-foreground">{pendingPlan?.name ?? pendingRequest.pass_type}</span> pas je uložená v Supabase.
+              Tvoja žiadosť o <span className="font-semibold text-foreground">{pendingPlan?.name ?? pendingRequest.pass_type}</span> pas bola odoslaná.
             </p>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-mono bg-emerald-500/8 border border-emerald-500/20 px-4 py-2 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot" />
-            Status: {pendingRequest.status}
+            Čaká sa na schválenie
           </div>
           <Button
             variant="outline"
@@ -139,7 +139,7 @@ export default function Passes() {
 
       {requestPass.error && (
         <div className="max-w-3xl bg-red-500/5 border border-red-500/25 rounded-xl p-4 text-sm text-red-400">
-          {(requestPass.error as Error).message}
+          Nepodarilo sa odoslať žiadosť. Skúste to znova.
         </div>
       )}
 

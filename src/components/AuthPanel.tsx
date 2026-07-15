@@ -48,7 +48,7 @@ export function AuthPanel({ embedded = false, onAuthenticated }: AuthPanelProps)
       } else if (msg.includes("Email not confirmed")) {
         setError("E-mail nebola potvrdená. Skontrolujte svoju schránku.");
       } else {
-        setError(msg);
+        setError("Nastala neočakávaná chyba. Skúste to znova.");
       }
     }
   };

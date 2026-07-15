@@ -5,9 +5,6 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LedgerSkeleton } from "@/components/skeletons";
 import {
-  CheckCircle2,
-  Copy,
-  History,
   Info,
   Package,
   Search,
@@ -28,24 +25,16 @@ export default function Ledger() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [activeTxInfo, setActiveTxInfo] = useState<any | null>(null);
-  const [copiedHash, setCopiedHash] = useState(false);
   const isMobile = useIsMobile();
 
   const filteredData = useMemo(() => {
     return transactions.filter((row) => {
       const matchesSearch =
-        row.description.toLowerCase().includes(search.toLowerCase()) ||
-        row.id.toLowerCase().includes(search.toLowerCase());
+        row.description.toLowerCase().includes(search.toLowerCase());
       const matchesType = filterType === "all" || row.transaction_type === filterType;
       return matchesSearch && matchesType;
     });
   }, [filterType, search, transactions]);
-
-  const handleCopyHash = (hash: string) => {
-    navigator.clipboard.writeText(hash);
-    setCopiedHash(true);
-    setTimeout(() => setCopiedHash(false), 2000);
-  };
 
   return (
     <div className="space-y-8">
@@ -60,7 +49,7 @@ export default function Ledger() {
           <div className="relative flex-1">
             <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
-              placeholder="Hľadať ID alebo popis"
+              placeholder="Hľadať v popise"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 h-9 bg-card border-border/60 text-xs font-mono focus-visible:ring-primary rounded-xl"
@@ -88,17 +77,15 @@ export default function Ledger() {
               <thead className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest border-b border-border/50">
                 <tr>
                   <th className="px-5 py-3.5 font-semibold">Dátum</th>
-                  <th className="px-5 py-3.5 font-semibold">ID</th>
                   <th className="px-5 py-3.5 font-semibold">Typ</th>
                   <th className="px-5 py-3.5 font-semibold">Popis</th>
                   <th className="px-5 py-3.5 font-semibold text-right">Suma</th>
-                  <th className="px-5 py-3.5 font-semibold text-center">Audit</th>
+                  <th className="px-5 py-3.5 font-semibold text-center">Detail</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
                 {filteredData.map((row) => {
                   const TypeIcon = row.transaction_type === "game_claim" ? Package : TrendingUp;
-                  const hash = row.id.replaceAll("-", "");
 
                   return (
                     <tr
@@ -108,9 +95,6 @@ export default function Ledger() {
                     >
                       <td className="px-5 py-4 font-mono text-muted-foreground whitespace-nowrap text-xs">
                         {new Date(row.created_at).toLocaleDateString("sk-SK")}
-                      </td>
-                      <td className="px-5 py-4 font-mono text-muted-foreground/70 text-xs whitespace-nowrap">
-                        {row.id.slice(0, 8)}
                       </td>
                       <td className="px-5 py-4">
                         <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold font-mono px-2 py-1 rounded-lg border bg-violet-500/10 border-violet-500/20 text-violet-400">
@@ -126,7 +110,7 @@ export default function Ledger() {
                       </td>
                       <td className="px-5 py-4 text-center whitespace-nowrap">
                         <button
-                          onClick={() => setActiveTxInfo({ ...row, hash })}
+                          onClick={() => setActiveTxInfo(row)}
                           className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-background border border-border/60 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
                           title="Zobraziť audit"
                         >
@@ -143,7 +127,6 @@ export default function Ledger() {
           <div className="divide-y divide-border/30">
             {filteredData.map((row) => {
               const TypeIcon = row.transaction_type === "game_claim" ? Package : TrendingUp;
-              const hash = row.id.replaceAll("-", "");
 
               return (
                 <div
@@ -166,11 +149,11 @@ export default function Ledger() {
                       {!row.amount ? "-" : row.amount}
                     </span>
                     <button
-                      onClick={() => setActiveTxInfo({ ...row, hash })}
+                      onClick={() => setActiveTxInfo(row)}
                       className="inline-flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground hover:text-primary transition-colors"
                     >
                       <Info className="w-3 h-3" />
-                      Audit
+                      Detail
                     </button>
                   </div>
                 </div>
@@ -181,7 +164,7 @@ export default function Ledger() {
 
         {(filteredData.length === 0 || isLoading || error) && (
           <div className="py-16 text-center text-muted-foreground font-mono text-xs">
-            {isLoading ? "Načítavam transakcie..." : error ? (error as Error).message : "Žiadne transakcie."}
+            {isLoading ? "Načítavam transakcie..." : error ? "Nepodarilo sa načítať transakcie." : "Žiadne transakcie."}
           </div>
         )}
       </div>
@@ -194,7 +177,7 @@ export default function Ledger() {
             <div className="flex justify-between items-center border-b border-border/50 px-5 py-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs font-semibold text-foreground">Audit transakcie</span>
+                <span className="text-xs font-semibold text-foreground">Detail transakcie</span>
               </div>
               <button
                 onClick={() => setActiveTxInfo(null)}
@@ -206,36 +189,18 @@ export default function Ledger() {
 
             <div className="p-5 space-y-4 font-mono text-xs">
               <div>
-                <div className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">ID transakcie</div>
-                <div className="text-foreground font-bold break-all">{activeTxInfo.id}</div>
+                <div className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Popis</div>
+                <div className="text-foreground font-bold">{activeTxInfo.description}</div>
               </div>
 
               <div>
-                <div className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1.5">Hash</div>
-                <div className="bg-background border border-border/70 rounded-xl p-3 flex items-start gap-3">
-                  <span className="break-all text-foreground/80 leading-relaxed select-all flex-1 text-[10px]">
-                    {activeTxInfo.hash}
-                  </span>
-                  <button
-                    onClick={() => handleCopyHash(activeTxInfo.hash)}
-                    className="shrink-0 p-1 text-muted-foreground hover:text-primary transition-colors mt-0.5"
-                  >
-                    {copiedHash
-                      ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      : <Copy className="w-3.5 h-3.5" />
-                    }
-                  </button>
-                </div>
+                <div className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Typ</div>
+                <div className="text-foreground font-bold">{TYPE_LABELS[activeTxInfo.transaction_type] ?? activeTxInfo.transaction_type}</div>
               </div>
 
-              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                <div>
-                  <div className="text-[10px] font-bold text-emerald-400">Záznam zo Supabase</div>
-                  <div className="text-[9px] text-muted-foreground mt-0.5 leading-relaxed">
-                    Tento riadok pochádza z tabuľky transactions.
-                  </div>
-                </div>
+              <div>
+                <div className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Dátum</div>
+                <div className="text-foreground font-bold">{new Date(activeTxInfo.created_at).toLocaleDateString("sk-SK")}</div>
               </div>
             </div>
 
