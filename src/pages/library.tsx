@@ -298,9 +298,15 @@ export default function Library() {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Featured banner: highest-rated game from the current filter.
+  // Featured banner: random highly-rated game from the current filter.
+  // Use a ref to track the last filter key so we only re-pick when filters change, not when games load.
+  const lastFilterKey = useRef("");
   const [featured, setFeatured] = useState<any>(null);
   useEffect(() => {
+    const filterKey = `${selectedGenre}-${selectedDecade}-${broadSearchTerm}`;
+    if (filterKey === lastFilterKey.current) return;
+    lastFilterKey.current = filterKey;
+
     if (filtered.length === 0) {
       setFeatured(null);
       return;
@@ -312,7 +318,7 @@ export default function Library() {
     });
     const pool = rated.slice(0, 20);
     setFeatured(pool[Math.floor(Math.random() * pool.length)]);
-  }, [selectedGenre, selectedDecade, broadSearchTerm, games.length]);
+  }, [selectedGenre, selectedDecade, broadSearchTerm, filtered]);
 
 
   // Search dropdown matches: uses games array + debounced input
