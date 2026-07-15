@@ -8,8 +8,8 @@ export function useClaimGame() {
 
   return useMutation({
     mutationFn: async (gameId: number) => {
-      const { data, error } = await supabase.rpc("request_game", {
-        p_game_id: gameId,
+      const { data, error } = await supabase.rpc("claim_game", {
+        requested_game_id: gameId,
       });
 
       if (error) throw error;
