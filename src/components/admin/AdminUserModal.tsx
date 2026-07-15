@@ -61,7 +61,7 @@ export function AdminUserModal({ userId, onClose }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_games")
-        .select("id, game_id, license_key, acquired_at, game:games(title, platform, cover_url)")
+        .select("id, game_id, license_key, acquired_at, game:games(title, platform, image)")
         .eq("user_id", userId)
         .order("acquired_at", { ascending: false });
       if (error) throw error;

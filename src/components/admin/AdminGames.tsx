@@ -15,7 +15,7 @@ export function AdminGames() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("games")
-        .select("id, title, cover_url, rating, genres, platform, release_date, tags")
+        .select("id, title, image, rating, genre, platform, year, tags")
         .order("title");
       if (error) throw error;
       return (data ?? []) as AdminGame[];
@@ -28,7 +28,7 @@ export function AdminGames() {
     return (
       g.title.toLowerCase().includes(q) ||
       g.platform?.toLowerCase().includes(q) ||
-      g.genres?.some((genre) => genre.toLowerCase().includes(q))
+      g.genre?.toLowerCase().includes(q)
     );
   });
 
@@ -113,9 +113,9 @@ export function AdminGames() {
                       className="border-b border-border/20 last:border-0 hover:bg-card/50 transition-colors"
                     >
                       <td className="px-4 py-2">
-                        {game.cover_url ? (
+                        {game.image ? (
                           <img
-                            src={game.cover_url}
+                            src={game.image}
                             alt=""
                             className="w-8 h-10 rounded object-cover"
                           />
@@ -140,18 +140,14 @@ export function AdminGames() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
-                          {(game.genres ?? []).slice(0, 2).map((g) => (
+                          {game.genre ? (
                             <span
-                              key={g}
                               className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-primary/5 text-primary/70 border border-primary/10"
                             >
-                              {GENRE_LABELS[g] ?? g}
+                              {GENRE_LABELS[game.genre] ?? game.genre}
                             </span>
-                          ))}
-                          {(game.genres ?? []).length > 2 && (
-                            <span className="text-[9px] text-muted-foreground font-mono">
-                              +{(game.genres ?? []).length - 2}
-                            </span>
+                          ) : (
+                            <span className="text-muted-foreground/40">—</span>
                           )}
                         </div>
                       </td>
@@ -161,7 +157,7 @@ export function AdminGames() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-[11px] text-muted-foreground font-mono">
-                        {game.release_date || "—"}
+                        {game.year || "—"}
                       </td>
                     </tr>
                   ))}

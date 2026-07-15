@@ -18,11 +18,11 @@ export interface AdminPassRequest {
 export interface AdminGame {
   id: number;
   title: string;
-  cover_url: string | null;
+  image: string | null;
   rating: string;
-  genres: string[];
+  genre: string;
   platform: string;
-  release_date: string;
+  year: number;
   tags: string[];
 }
 
@@ -45,7 +45,7 @@ export interface AdminUserGame {
   game: {
     title: string;
     platform: string;
-    cover_url: string | null;
+    image: string | null;
   };
 }
 
