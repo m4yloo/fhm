@@ -458,8 +458,10 @@ export default function Library() {
     <div className="flex flex-col gap-10">
 
       {/* ── Novinky & Trendy rails ── */}
-      <GameRail title="Novinky" games={novinky} onPickGame={pickGame} autoScroll />
-      <GameRail title="Trendy" games={trendy} onPickGame={pickGame} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <GameRail title="Novinky" games={novinky} onPickGame={pickGame} autoScroll />
+        <GameRail title="Trendy" games={trendy} onPickGame={pickGame} />
+      </div>
 
       {/* ── Featured banner ── */}
       {featured && (
