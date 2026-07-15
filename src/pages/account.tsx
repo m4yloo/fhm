@@ -30,9 +30,9 @@ export default function Account() {
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationResult, setVerificationResult] = useState<"idle" | "success" | "error">("idle");
 
-  const passName = activePass?.name ?? "Pas";
-  const gamesAllowed = activePass?.redemptions_total ?? 0;
-  const gamesClaimed = activePass?.redemptions_used ?? userGames.length;
+  const passName = activePass?.pass_type === "unlimited" ? "Neobmedzený pas" : "Limitovaný pas";
+  const gamesAllowed = activePass?.games_allowed ?? 0;
+  const gamesClaimed = activePass?.games_claimed ?? userGames.length;
   const gamesRemaining = activePass ? Math.max(gamesAllowed - gamesClaimed, 0) : 0;
   const daysLeft = activePass
     ? Math.max(Math.ceil((new Date(activePass.expires_at).getTime() - Date.now()) / 86_400_000), 0)

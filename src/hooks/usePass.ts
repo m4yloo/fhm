@@ -5,12 +5,14 @@ import { useAuthContext } from "@/lib/auth-provider";
 export interface Pass {
   id: string;
   user_id: string;
-  name: string;
-  redemptions_total: number;
-  redemptions_used: number;
+  pass_type: "limited" | "unlimited";
+  status: "active" | "expired" | "cancelled";
+  games_allowed: number;
+  games_claimed: number;
+  started_at: string;
   expires_at: string;
-  status: "active" | "expired" | "revoked";
   created_at: string;
+  updated_at: string;
 }
 
 export function usePass() {

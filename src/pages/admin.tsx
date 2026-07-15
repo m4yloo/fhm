@@ -155,13 +155,10 @@ export default function Admin() {
           expiresAt.setMonth(expiresAt.getMonth() + 4);
           const { error: passError } = await supabase.from("user_passes").insert({
             user_id: request.user_id,
-            name:
-              request.pass_type === "unlimited"
-                ? "Neobmedzený pas"
-                : "Limitovaný pas",
-            redemptions_total:
-              request.pass_type === "unlimited" ? 100 : 12,
-            redemptions_used: 0,
+            pass_type: request.pass_type,
+            games_allowed: request.pass_type === "unlimited" ? 100 : 12,
+            games_claimed: 0,
+            started_at: new Date().toISOString(),
             expires_at: expiresAt.toISOString(),
             status: "active",
           });

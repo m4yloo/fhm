@@ -52,9 +52,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const email = user?.email ?? "";
 
   const hasPass = !!activePass;
-  const passName = activePass?.name ?? "Pas";
-  const gamesAllowed = activePass?.redemptions_total ?? 0;
-  const gamesClaimed = activePass?.redemptions_used ?? userGames.length;
+  const passName = activePass?.pass_type === "unlimited" ? "Neobmedzený pas" : "Limitovaný pas";
+  const gamesAllowed = activePass?.games_allowed ?? 0;
+  const gamesClaimed = activePass?.games_claimed ?? userGames.length;
   const percentage = gamesAllowed > 0
     ? Math.min(Math.round((gamesClaimed / gamesAllowed) * 100), 100)
     : 0;
