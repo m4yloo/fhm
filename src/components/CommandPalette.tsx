@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command";
 import { useGames } from "@/hooks/useGames";
 import { Search, Gamepad2, ArrowRight } from "lucide-react";
-import { GENRE_LABELS } from "@/pages/library";
+import { GENRE_LABELS } from "@/components/library/GameRail";
 
 // Pre-build a flat search index: title + genre lowercase for fast matching.
 interface QuickEntry {
